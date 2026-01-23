@@ -1,0 +1,40 @@
+{
+  "overall_summary": "The report contains critical discrepancies in property extent and boundary details that need to be addressed before release.",
+  "overall_risk_level": "NEEDS_FIX_BEFORE_RELEASE",
+  "sections": {
+    "property_details": [
+      {
+        "id": "PD-01",
+        "severity": "critical",
+        "location": "property_details - extent",
+        "rule": "A. PROPERTY DETAILS - Extent with units must match deed and be consistent across all sections",
+        "message_for_maker": "The extent of the property in the report does not match the extent in the source documents.",
+        "suggested_fix": "Correct the extent in the report to match the source document, ensuring consistency across all sections.",
+        "evidence": {
+          "from_report": "extent_report: \"73.33 Sq. Yds\"",
+          "from_source_docs": "extent_source: \"33 sq.m\""
+        }
+      }
+    ],
+    "schedule_of_property": [
+      {
+        "id": "SP-01",
+        "severity": "major",
+        "location": "schedule_of_property - boundaries",
+        "rule": "B. SCHEDULE OF PROPERTY - Boundaries (N/S/E/W) must match deed exactly",
+        "message_for_maker": "The boundaries in the report do not match the boundaries in the source documents.",
+        "suggested_fix": "Update the boundaries in the report to reflect those in the source documents.",
+        "evidence": {
+          "from_report": "\"north\": \" 22.0 Ft Road\", \"south\": \"22.0 Ft Site Belongs to others\", \"east\": \" 30.3 Ft Site of Inti Durga\", \"west\": \" 30.0 Ft Site of Ugguralla Pampayya\"",
+          "from_source_docs": "\"north\": \"dian non-judicial\", \"south\": \"5.50\", \"east\": \"ES\", \"west\": \"/O Tiragati Dasu\""
+        }
+      }
+    ],
+    "documents_scrutinized": [],
+    "encumbrance_certificate": [],
+    "flow_of_title": [],
+    "mutation_and_tax": [],
+    "conclusion_and_remarks": [],
+    "layout_and_flowchart": []
+  }
+}

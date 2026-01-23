@@ -1,0 +1,93 @@
+{
+  "attachments": [
+    "Indian Non-Judicial\nTwenty Rupees\nDOC.NO. 39/2026\nSettlement Deed\nSettlement Deed for Rs.96,000/- worth of property.\nDated 06th January 2026\nSigned by: Vizianagaram District, Vepada Mandal, Boddam Village\nBallanki Danaji (28 years) son of Ballanki Lakshmana Rao\nSigned by: Vizianagaram District, Vepada Mandal, Boddam Village\nBallanki Ramalakshmi (50 years) wife of Ballanki Lakshmana Rao\n\nProperty Details: In Anakapalle District, K. Kotapadu, Devarapalli Mandal, Raiwada Gram Panchayat, Raiwada Revenue, residential area Survey No. 75, measuring 96 sq. yds.\nEast and West: 24 feet. North and South: 36 feet.\nBoundaries:\n1. East: Kurumuji Eswar Rao Gari's terrace house\n2. South: Challa Ramulamma Gari's terrace house\n3. West: Gokada Demudu Gari's vacant land\n4. North: Panchayat C. C. Road\n\nRegistered as document no. 39 of 2026 of Book-1 at SRO K.KOTAPADU on 06-JAN-26.\n\nThis property is part of Gramakantam. No encumbrances or mortgages exist on this property. Property inherited by Ballanki Ramalakshmi, wife of Ballanki Lakshmana Rao."
+  ],
+  "encumbranceDetails": [
+    {
+      "SLNo": "1",
+      "description": "VILL/COL: Raiwada/RAIWADA(0-0) W-B: 0-0 SURVEY: 75 EXTENT: 96SQ.Yds BUILT: 0 SQ. FT Boundaries: [N]: panchayat cc road [S]: rcc house of challa ramulamma [E]: rcc house of kurumoji eswararao [W]: vacant site of gogada demudu",
+      "dates": "(R) 06-01-2026 (E) 05-01-2026 (P) 06-01-2026",
+      "deedValue": "0302 Gift Settlement in f/o family Mkt.Value:Rs. 96000 Cons.Value:Rs. 96000",
+      "parties": "1.(DE)Ballanki Dhanaji(Male) 2.(DR)Ballanki Ramalaxmi(Female)",
+      "identifiers": "0/0 39/2026 [1] of SRO K.KOTAPADU(304)"
+    }
+  ],
+  "reportJson": {
+    "code": "VER1009534",
+    "branch": "S.Kota",
+    "lan": "FIL176268",
+    "policy": "Title Search Report",
+    "maxLoan": "Not Specified",
+    "product": "Title Search Report",
+    "createdAt": "10/Jan/2026 10:51 AM",
+    "applicant": "BALLANKI DHANAJI",
+    "loanAmount": "INR 3,50,000",
+    "ownerName1": "Ballanki Dhanaji",
+    "mortgagorRelationship": null,
+    "createdBy": "Susanth Kumar P",
+    "createdByEmail": "susanthkumar.p@veritasfin.in",
+    "reportTypeCode": "REPORT_TYPE.TITLE_FLOW",
+    "propertyType": "General",
+    "registrationNo": "39/2026",
+    "additionalDocNoDocType": "",
+    "natureOfDeed": "Gift Settlement Deed",
+    "registeredSRO": "K.KOTAPADU(304)",
+    "mortgateDocumentAge": "0 year 0 month 5 days",
+    "propertyExtent": "96 Sq. Yds.",
+    "surveyNoDeed": "75",
+    "flatNoDeed": null,
+    "flatNo": null,
+    "plotNo": null,
+    "surveyNoAttachment": "",
+    "flatNoAttachment": "",
+    "houseNoOld": null,
+    "houseNoGP": null,
+    "assessmentNo": null,
+    "aliasName": "Raiwada",
+    "block": "/",
+    "taluk": "Devarapalle",
+    "district": "ANAKAPALLI",
+    "state": "ANDHRA PRADESH",
+    "mutation": "Not Applicable",
+    "accessibility": "Yes",
+    "addressLine": "",
+    "coordinates": "",
+    "boundaries": [
+      {
+        "scheduleNo": "1",
+        "boundaryN": "Panchayat C. C. Road",
+        "boundaryS": "RCC House of Challa Ramulamma",
+        "boundaryE": "RCC House of Kurumoji Eswararao",
+        "boundaryW": "Vacant site of Gogada Demudu"
+      }
+    ],
+    "requiredDocuments": [
+      {
+        "docType": "Gift Settlement Deed",
+        "docNumber": "39 of 2026",
+        "docDate": "06/Jan/2026",
+        "subType": "Scanned Copy"
+      },
+      {
+        "docType": "Internal Documents",
+        "docNumber": "Encumbrance Certificate",
+        "docDate": "10/Jan/2026",
+        "subType": "Scanned Copy"
+      }
+    ],
+    "sections": [
+      {
+        "content": "The property covered under Gift Settlement Deed No. 39 of 2026, dated 06-01-2026, executed by Ballanki Ramalaxmi in favour of her Son, Ballanki Dhanaji, towards the property admeasuring an extent of 96 Sq. Yds., comprised in survey number 75 situated in Raiwada Village, Revenue, Grama Panchayathi, Devarapalle Mandal, within the District of Anakapalli registered at sub-registrar office K.kotapadu(304) is bounded as follows:\n\n<b>North by:</b> Panchayat C. C. Road\n<b>South by:</b> RCC House of Challa Ramulamma\n<b>East by:</b> RCC House of Kurumoji Eswararao\n<b>West by:</b> Vacant site of Gogada Demudu\n\n<b>Note:</b> Schedule property is part of Gramakantam as per recitals of the deed.",
+        "contentList": []
+      },
+      {
+        "content": "It is noted from the given documents and EC that the schedule property is not part of any active Mortgage or Lease Deed.",
+        "contentList": []
+      },
+      {
+        "content": "Online verification of the Encumbrance Certificate (EC) could not be carried out as the government website https://registration.ec.ap.gov.in/ecSearch was not functional at the time of verification. Accordingly, this report has been prepared based on the EC provided by the F.I. and other documents made available to us. Hence, F.I. is advised to verify the latest updated EC prior to loan disbursement.",
+        "contentList": []
+      }
+    ]
+  }
+}

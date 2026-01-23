@@ -1,0 +1,23 @@
+{
+  "case_id": "AP-2019-001",
+  "meta": {
+    "state": "AP",
+    "district": "Krishna",
+    "sro": "PEDANA(611)"
+  },
+  "fingerprint": "Survey 580-1P, House 15/116-12, Assessment 1072002023, 145.2 Sq.Yds, Partition Deed 4163/2019, Schedule-C property, ACTIVE MORTGAGE 1116/2020 with Vistaar Finance, Mutation NOT completed, Tax in deceased name",
+  "key_fields": {
+    "survey_no": "580-1P",
+    "house_no": "15/116-12",
+    "assessment_no": "1072002023",
+    "extent": "145.2",
+    "extent_unit": "Sq.Yds",
+    "doc_nos": ["4163/2019", "1116/2020", "21/1964"],
+    "deed_types": ["Partition Deed", "Mortgage Deed", "Original Sale Deed"],
+    "mortgage_flag": true
+  },
+  "ec_summary": "EC shows complex history: (1) Original acquisition 21/1964 by Naragani Veera Ragavaiah, (2) Partition 4163/2019 among 4 family members (3 sons + 1 daughter), (3) ACTIVE Deposit of Title Deeds 1116/2020 with Vistaar Financial Services Gudivada. Multiple partition entries [A][B][C][D] for different schedules.",
+  "review_notes": "L2 accepted as BT case. Report correctly identified: (1) Active mortgage with Vistaar Finance - internal BT, receipt deed not insisted, (2) Mutation not completed - tax still in deceased father Naragani Pydayya's name, (3) Death certificates for father attached (mother's DC not available but Saral policy relaxation applied), (4) Partition among family members with Schedule-C going to Veerababu. Conclusion correctly states 'Subject to Discharge of Active Mortgage'.",
+  "exceptions": "For internal BT (mortgage with same FI): Do not insist on receipt deed - FI to verify internally. Tax receipt in deceased person's name is acceptable IF disclosed in report and FI advised to verify. Missing mother's death certificate acceptable under Saral policy. Multiple EC entries [A][B][C][D] for partition are normal - each schedule item gets separate entry.",
+  "flow_summary": "Naragani Veera Ragavaiah (original owner via 21/1964) → [oral partition pre-1984] → Naragani Pydayya (father, died 24-Mar-2010) → [Hindu succession] → Naragani Sivayya + Krishna Kumar + Veerababu + Peddi Parvathi → [Partition 4163/2019] → Naragani Veerababu (Schedule-C: 145.2 Sq.Yds with house) → [Mortgage 1116/2020] → Vistaar Finance (ACTIVE)"
+}

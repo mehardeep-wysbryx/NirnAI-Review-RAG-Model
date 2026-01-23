@@ -1,0 +1,66 @@
+{
+  "overall_summary": "The report contains critical discrepancies in property extent and boundary descriptions that need to be addressed before finalization. Other issues include mismatches in EC transaction details and missing flow of title documentation.",
+  "overall_risk_level": "NEEDS_FIX_BEFORE_RELEASE",
+  "sections": {
+    "property_details": [
+      {
+        "id": "PD-01",
+        "severity": "critical",
+        "location": "property_details - extent",
+        "rule": "A. PROPERTY DETAILS - Extent with units must match deed and be consistent across all sections",
+        "message_for_maker": "The extent of the property in the report does not match the source document.",
+        "suggested_fix": "Correct the extent in the report to match the source document.",
+        "evidence": {
+          "from_report": "extent_report: \"73.33 Sq. Yds\"",
+          "from_source_docs": "extent_source: \"33 sq.m\""
+        }
+      }
+    ],
+    "schedule_of_property": [
+      {
+        "id": "SP-01",
+        "severity": "major",
+        "location": "schedule_of_property - boundaries",
+        "rule": "B. SCHEDULE OF PROPERTY - Boundaries (N/S/E/W) must match deed exactly",
+        "message_for_maker": "The boundary descriptions in the report do not match the source document.",
+        "suggested_fix": "Update the boundary descriptions in the report to match those in the source document.",
+        "evidence": {
+          "from_report": "\"north\": \" 22.0 Ft Road\", \"south\": \"22.0 Ft Site Belongs to others\", \"east\": \" 30.3 Ft Site of Inti Durga\", \"west\": \" 30.0 Ft Site of Ugguralla Pampayya\"",
+          "from_source_docs": "\"north\": \"dian non-judicial\", \"south\": \"5.50\", \"east\": \"ES\", \"west\": \"/O Tiragati Dasu\""
+        }
+      }
+    ],
+    "documents_scrutinized": [],
+    "encumbrance_certificate": [
+      {
+        "id": "EC-01",
+        "severity": "minor",
+        "location": "encumbrance_certificate - transactions",
+        "rule": "D. ENCUMBRANCE CERTIFICATE - All relevant doc nos, years, deed types from EC must be reflected",
+        "message_for_maker": "The EC transaction details do not fully match the report.",
+        "suggested_fix": "Ensure all EC transaction details are accurately reflected in the report.",
+        "evidence": {
+          "from_report": "The property covered under Gift Settlement Deed No. 197 of 2026",
+          "from_source_docs": "\"doc_no\": \"0/0\", \"deed_type\": \"Gift Settlement\", \"registration_date\": \"12-01-2026\""
+        }
+      }
+    ],
+    "flow_of_title": [
+      {
+        "id": "FT-01",
+        "severity": "major",
+        "location": "flow_of_title - title chain",
+        "rule": "E. FLOW OF TITLE - Title chain must be continuous from earliest link document to current owner",
+        "message_for_maker": "The flow of title is not clearly documented in the report.",
+        "suggested_fix": "Provide a clear and continuous flow of title from the earliest document to the current owner.",
+        "evidence": {
+          "from_report": "executed by Tiragati Meri, in favour of her husband, Tiragati Dasu",
+          "from_source_docs": "Execution admitted by (Details of all Executants/Claimants under ..."
+        }
+      }
+    ],
+    "mutation_and_tax": [],
+    "conclusion_and_remarks": [],
+    "layout_and_flowchart": []
+  }
+}

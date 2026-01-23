@@ -1,0 +1,40 @@
+{
+  "overall_summary": "The report contains discrepancies that need to be addressed before finalizing the title verification. Key issues include mismatches in owner names and incomplete document scrutiny.",
+  "overall_risk_level": "NEEDS_FIX_BEFORE_RELEASE",
+  "sections": {
+    "property_details": [
+      {
+        "id": "PD-01",
+        "severity": "major",
+        "location": "Owner name",
+        "rule": "A. PROPERTY DETAILS - Owner name must match latest title deed and EC",
+        "message_for_maker": "Owner name in the report does not match the source document.",
+        "suggested_fix": "Ensure the owner name in the report matches exactly with the name in the source documents.",
+        "evidence": {
+          "from_report": "owner_in_report: \"Ballanki Dhanaji\"",
+          "from_source_docs": "Ballanki Danaji (28 years) son of Ballanki Lakshmana Rao"
+        }
+      }
+    ],
+    "schedule_of_property": [],
+    "documents_scrutinized": [
+      {
+        "id": "DS-01",
+        "severity": "minor",
+        "location": "Documents list",
+        "rule": "C. DOCUMENTS SCRUTINIZED - List must include ALL documents relied upon",
+        "message_for_maker": "The list of documents scrutinized is incomplete.",
+        "suggested_fix": "Ensure all documents used in the verification process are listed.",
+        "evidence": {
+          "from_report": "documents_scrutinized: [Gift Settlement Deed, Internal Documents]",
+          "from_source_docs": "No additional documents mentioned in source."
+        }
+      }
+    ],
+    "encumbrance_certificate": [],
+    "flow_of_title": [],
+    "mutation_and_tax": [],
+    "conclusion_and_remarks": [],
+    "layout_and_flowchart": []
+  }
+}

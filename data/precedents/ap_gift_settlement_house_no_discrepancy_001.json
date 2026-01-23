@@ -1,0 +1,23 @@
+{
+  "case_id": "AP-2026-002",
+  "meta": {
+    "state": "AP",
+    "district": "Parvathipuram Manyam",
+    "sro": "SALURU(209)"
+  },
+  "fingerprint": "Survey 222/1, 111.11 Sq.Yds, Gift Settlement Deed 75/2026, Markondaputti Village, Gramakantam, House No 2-120 in EC but NOT in Deed, Vacant land, Makkuva Mandal",
+  "key_fields": {
+    "survey_no": "222/1",
+    "house_no": "2-120",
+    "assessment_no": null,
+    "extent": "111.11",
+    "extent_unit": "Sq.Yds",
+    "doc_nos": ["75/2026"],
+    "deed_types": ["Gift Settlement Deed"],
+    "mortgage_flag": false
+  },
+  "ec_summary": "EC shows Gift Settlement 75/2026. House No. 2-120 appears in EC but is NOT mentioned in the pledging deed. This is the residential address of the parties, not a property identifier. Property is vacant Gramakantam land (no buildings). Survey 222/1 correctly matches.",
+  "review_notes": "L2 accepted with discrepancy note. Report correctly identified that House No. 2-120 in EC is the residential address of the parties (Seedarapu family resides at 2-120), not the property's house number. The vacant land itself has no house number. FI advised to proceed per internal policy. Grama Panchayat certificate attached confirming property details.",
+  "exceptions": "House number appearing in EC but not in Deed is acceptable when: (1) EC shows party's residential address, not property identifier, (2) Property is vacant land with no assigned house number. Do not flag as mismatch - just note for FI. Varalaxmi vs Varalakshmi spelling variation is acceptable Telugu transliteration.",
+  "flow_summary": "Seedarapu Venkati (husband, inherited Gramakantam land from father Adhanna) → Seedarapu Varalakshmi (wife) via Gift Settlement 75/2026. Vacant land with no construction. Property acquired by donor through inheritance (pitrarjitam)."
+}
