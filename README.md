@@ -365,21 +365,43 @@ flowchart LR
 ## 📈 How It Learns
 
 ```mermaid
-mindmap
-  root((NirnAI<br/>Learning))
-    Precedent Memory
-      Past review notes
-      Accepted exceptions
-      Severity calibrations
-    State-Specific
-      AP patterns
-      TS patterns
-      KA patterns
-    Issue Types
-      Boundary mismatches
-      Name variations
-      Document chains
-      Mortgage encumbrances
+flowchart TB
+    subgraph Learning["🧠 NirnAI Learning"]
+        direction TB
+        ROOT((NirnAI<br/>Learning))
+        
+        ROOT --> PM["📚 Precedent Memory"]
+        ROOT --> SS["🗺️ State-Specific"]
+        ROOT --> IT["⚠️ Issue Types"]
+        
+        PM --> PM1["Past review notes"]
+        PM --> PM2["Accepted exceptions"]
+        PM --> PM3["Severity calibrations"]
+        
+        SS --> SS1["AP patterns"]
+        SS --> SS2["TS patterns"]
+        SS --> SS3["KA patterns"]
+        
+        IT --> IT1["Boundary mismatches"]
+        IT --> IT2["Name variations"]
+        IT --> IT3["Document chains"]
+        IT --> IT4["Mortgage encumbrances"]
+    end
+    
+    style ROOT fill:#6c5ce7,stroke:#fff,color:#fff
+    style PM fill:#00b894,stroke:#fff,color:#fff
+    style SS fill:#e17055,stroke:#fff,color:#fff
+    style IT fill:#0984e3,stroke:#fff,color:#fff
+    style PM1 fill:#55efc4,stroke:#00b894,color:#000
+    style PM2 fill:#55efc4,stroke:#00b894,color:#000
+    style PM3 fill:#55efc4,stroke:#00b894,color:#000
+    style SS1 fill:#fab1a0,stroke:#e17055,color:#000
+    style SS2 fill:#fab1a0,stroke:#e17055,color:#000
+    style SS3 fill:#fab1a0,stroke:#e17055,color:#000
+    style IT1 fill:#74b9ff,stroke:#0984e3,color:#000
+    style IT2 fill:#74b9ff,stroke:#0984e3,color:#000
+    style IT3 fill:#74b9ff,stroke:#0984e3,color:#000
+    style IT4 fill:#74b9ff,stroke:#0984e3,color:#000
 ```
 
 ---
