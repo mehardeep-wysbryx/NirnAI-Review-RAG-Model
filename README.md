@@ -1,4 +1,4 @@
-# NirnAI - RAG-Powered Legal Document Review
+# NirnAI - RAG-Powered Legal Document Review Function
 
 <div align="center">
 
@@ -371,14 +371,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## Acknowledgments
-
-- Built with [ChromaDB](https://www.trychroma.com/) for vector storage
-- [Sentence-Transformers](https://www.sbert.net/) for local embeddings
-- OpenAI GPT-4 / Anthropic Claude for LLM inference
-
----
-
-<div align="center">
-  <sub>Built with ❤️ by Wysbryx</sub>
-</div>
