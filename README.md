@@ -234,9 +234,6 @@ sequenceDiagram
    ```bash
    # For OpenAI
    OPENAI_API_KEY=sk-your-openai-api-key-here
-   
-   # OR for Anthropic
-   ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
    ```
 
 ---
@@ -419,13 +416,6 @@ Metrics measured:
 
 ---
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ---
 
@@ -433,20 +423,3 @@ Metrics measured:
 
 MIT License - see [LICENSE](LICENSE) for details.
 
----
-
-## 🙏 Acknowledgments
-
-| Technology | Use |
-|------------|-----|
-| [ChromaDB](https://www.trychroma.com/) | Vector storage |
-| [Sentence-Transformers](https://www.sbert.net/) | Local embeddings |
-| OpenAI / Anthropic | LLM inference |
-
----
-
-<div align="center">
-  
-**Built with ❤️ by Wysbryx**
-
-</div>
