@@ -102,7 +102,7 @@ The system retrieves similar historical cases (precedents) to calibrate issue se
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/NirnAI.git
+   git clone https://github.com/mehardeep-wysbryx/NirnAI-Review-RAG-Model.git
    cd NirnAI
    ```
 
@@ -123,12 +123,6 @@ The system retrieves similar historical cases (precedents) to calibrate issue se
    ```bash
    OPENAI_API_KEY=sk-your-openai-api-key-here
    ```
-   
-   Or for Anthropic:
-   ```bash
-   ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
-   ```
-
 ---
 
 ## Usage
