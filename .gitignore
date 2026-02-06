@@ -64,3 +64,9 @@ logs/
 
 # Output files (optional - uncomment if you don't want to track outputs)
 # outputs/
+
+# Outputs (generated review results)
+outputs/*.json
+
+# ChromaDB vector store (can be regenerated)
+chroma_db/

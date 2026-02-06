@@ -292,8 +292,8 @@ class PrecedentStore:
     def retrieve_precedents(
         self,
         query: str,
-        k: int = 8,
-        n: int = 5,
+        k: int = 15,
+        n: int = 8,
         filter_state: Optional[str] = None,
     ) -> List[Dict]:
         """

@@ -90,8 +90,8 @@ class ReviewPipeline:
         state_filter = merged_case.get('meta', {}).get('state')
         precedents = self.precedent_store.retrieve_precedents(
             query=fingerprint,
-            k=8,
-            n=5,
+            k=15,
+            n=8,
             filter_state=state_filter,
         )
         precedent_snippets = format_precedents_for_prompt(precedents)

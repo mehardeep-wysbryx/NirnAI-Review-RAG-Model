@@ -240,7 +240,21 @@ sequenceDiagram
 
 ## 💻 Usage
 
-### Quick Test
+### 🌐 Streamlit Web App (Recommended)
+
+Launch the interactive web interface:
+
+```bash
+streamlit run app.py
+```
+
+This opens a web app where you can:
+- 📤 **Upload Precedents**: Batch upload JSON files with auto-naming
+- 🔍 **Run Reviews**: Upload test cases and get instant results
+- 📁 **Manage Data**: View, search, and delete precedent files
+- 📥 **Download Results**: Export review outputs as JSON
+
+### Quick Test (CLI)
 
 ```bash
 python test_run.py
@@ -286,6 +300,7 @@ NirnAI/
 │   └── utils.py                # Data extraction utilities
 ├── 📂 chroma_db/               # Vector store (auto-generated)
 ├── .env                         # API keys (create this)
+├── app.py                       # 🌐 Streamlit web interface
 ├── requirements.txt
 ├── test_run.py                  # Quick test script
 └── evaluate.py                  # Evaluation harness
