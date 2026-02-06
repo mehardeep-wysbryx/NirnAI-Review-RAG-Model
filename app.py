@@ -14,9 +14,19 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 
-# Load environment variables
-from dotenv import load_dotenv
-load_dotenv()
+# Load environment variables - support both .env file (local) and Streamlit secrets (cloud)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not available in cloud
+
+# Load API keys from Streamlit secrets if available (for cloud deployment)
+if hasattr(st, 'secrets'):
+    if 'OPENAI_API_KEY' in st.secrets:
+        os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
+    if 'ANTHROPIC_API_KEY' in st.secrets:
+        os.environ['ANTHROPIC_API_KEY'] = st.secrets['ANTHROPIC_API_KEY']
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
