@@ -156,7 +156,16 @@ def generate_filename(json_data, index):
 
 
 def load_precedent_store():
-    """Load the precedent store (cached)."""
+    """Load the precedent store (cached). Uses Pinecone if available, else ChromaDB."""
+    pinecone_key = os.getenv("PINECONE_API_KEY")
+    
+    if pinecone_key:
+        try:
+            from src.pinecone_store import PineconeStore
+            return PineconeStore()
+        except Exception as e:
+            st.warning(f"Pinecone unavailable ({e}), falling back to ChromaDB")
+    
     from src.ingest import PrecedentStore
     return PrecedentStore()
 
@@ -190,13 +199,21 @@ with st.sidebar:
     st.markdown("#### 🔑 API Status")
     openai_key = os.getenv("OPENAI_API_KEY")
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    pinecone_key = os.getenv("PINECONE_API_KEY")
     
     if openai_key:
         st.success(f"✅ OpenAI: {openai_key[:10]}...")
     elif anthropic_key:
         st.success(f"✅ Anthropic: {anthropic_key[:10]}...")
     else:
-        st.error("❌ No API key found")
+        st.error("❌ No LLM API key found")
+    
+    # Vector Store Status
+    if pinecone_key:
+        st.success(f"✅ Pinecone: {pinecone_key[:10]}...")
+        st.caption("☁️ Using cloud vector store")
+    else:
+        st.info("💾 Using local ChromaDB")
         st.info("Add OPENAI_API_KEY or ANTHROPIC_API_KEY to .env file")
     
     st.markdown("---")
