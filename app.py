@@ -22,11 +22,14 @@ except ImportError:
     pass  # dotenv not available in cloud
 
 # Load API keys from Streamlit secrets if available (for cloud deployment)
-if hasattr(st, 'secrets'):
-    if 'OPENAI_API_KEY' in st.secrets:
-        os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
-    if 'ANTHROPIC_API_KEY' in st.secrets:
-        os.environ['ANTHROPIC_API_KEY'] = st.secrets['ANTHROPIC_API_KEY']
+try:
+    if hasattr(st, 'secrets') and len(st.secrets) > 0:
+        if 'OPENAI_API_KEY' in st.secrets:
+            os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
+        if 'ANTHROPIC_API_KEY' in st.secrets:
+            os.environ['ANTHROPIC_API_KEY'] = st.secrets['ANTHROPIC_API_KEY']
+except Exception:
+    pass  # No secrets file - using .env instead (local development)
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -291,10 +294,10 @@ with tab1:
                     else:
                         filename = uploaded_file.name
                     
-                    # Save file
+                    # Save file with Unicode support
                     filepath = PRECEDENTS_DIR / filename
-                    with open(filepath, "w") as f:
-                        json.dump(content, f, indent=2)
+                    with open(filepath, "w", encoding="utf-8") as f:
+                        json.dump(content, f, indent=2, ensure_ascii=False)
                     
                     saved_files.append(filename)
                     
@@ -499,7 +502,7 @@ with tab2:
                             output_path = OUTPUTS_DIR / output_filename
                             
                             with open(output_path, "w") as f:
-                                json.dump(result, f, indent=2)
+                                json.dump(result, f, indent=2, ensure_ascii=False)
                             
                             st.success(f"✅ Saved to: {output_path}")
                         
@@ -507,7 +510,7 @@ with tab2:
                         st.markdown("---")
                         st.download_button(
                             label="📥 Download Review JSON",
-                            data=json.dumps(result, indent=2),
+                            data=json.dumps(result, indent=2, ensure_ascii=False),
                             file_name=f"review_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                             mime="application/json",
                             use_container_width=True

@@ -166,6 +166,341 @@ def normalize_date(date_str: Optional[str]) -> str:
 
 
 # =============================================================================
+# TAMIL NADU SPECIFIC PATTERNS
+# =============================================================================
+
+# Tamil direction abbreviations mapping
+# வ = வடக்கு (North), ெத = தெற்கு (South), கி = கிழக்கு (East), ேம = மேற்கு (West)
+TAMIL_DIRECTION_MAP = {
+    'வ': 'north',
+    '(வ)': 'north',
+    'ெத': 'south',
+    '(ெத)': 'south',
+    'கி': 'east',
+    '(கி)': 'east',
+    'ேம': 'west',
+    '(ேம)': 'west',
+    # Alternative representations
+    'வடக்கு': 'north',
+    'தெற்கு': 'south',
+    'கிழக்கு': 'east',
+    'மேற்கு': 'west',
+}
+
+# English direction abbreviations (used in some Tamil Nadu ECs)
+ENGLISH_DIRECTION_MAP = {
+    'N': 'north',
+    'S': 'south', 
+    'E': 'east',
+    'W': 'west',
+    'North': 'north',
+    'South': 'south',
+    'East': 'east',
+    'West': 'west',
+}
+
+
+def _extract_tamil_nadu_boundaries(description: str) -> Dict[str, str]:
+    """
+    Extract boundaries from Tamil Nadu EC format.
+    Handles both Tamil abbreviations and English labels with Tamil text.
+    
+    Tamil Nadu EC boundary formats:
+    1. "கிேம ேராட்டுக்கு (வ), மைன எண் 59 க்கு (ெத), மைன எண் 75 க்கு (கி), மைன எண் 73 க்கு (ேம)"
+    2. "கிழக்கு - சயிட் எண்.73, ேமற்கு - சயிட் எண்.75, வடக்கு - கிழேமல் ேராடு, ெதற்கு - சயிட் எண்.59"
+    3. English labels: "East: Site no 73, West: Site no 75, North: Road, South: Site no 59"
+    """
+    boundaries = {}
+    
+    # Pattern 1: Tamil abbreviations at the end like "... (வ), ... (ெத)"
+    # Match content before direction abbreviation
+    tamil_abbrev_pattern = r'([^,\n]+?)\s*\((வ|ெத|கி|ேம)\)'
+    matches = re.findall(tamil_abbrev_pattern, description)
+    for content, direction in matches:
+        eng_direction = TAMIL_DIRECTION_MAP.get(f'({direction})')
+        if eng_direction:
+            # Clean the content - remove Tamil labels
+            content = re.sub(r'(?:மைன\s*எண்|சயிட்\s*எண்\.?)\s*', 'Site No.', content)
+            content = re.sub(r'ேராட்டுக்கு|ேராடு', 'Road', content)
+            content = re.sub(r'கிேம\s*', 'Kizhmel ', content)
+            content = content.strip(' ,')
+            if content:
+                boundaries[eng_direction] = content
+    
+    # Pattern 2: Tamil direction words with hyphen separator "கிழக்கு - ..."
+    tamil_full_patterns = [
+        (r'வடக்கு\s*[-–:]\s*([^,\n]+)', 'north'),
+        (r'தெற்கு\s*[-–:]\s*([^,\n]+)', 'south'),
+        (r'கிழக்கு\s*[-–:]\s*([^,\n]+)', 'east'),
+        (r'(?:மேற்கு|ேமற்கு)\s*[-–:]\s*([^,\n]+)', 'west'),
+    ]
+    
+    for pattern, direction in tamil_full_patterns:
+        if direction not in boundaries:
+            match = re.search(pattern, description)
+            if match:
+                content = match.group(1).strip(' ,')
+                # Clean Tamil content
+                content = re.sub(r'(?:மைன\s*எண்|சயிட்\s*எண்\.?)\s*', 'Site No.', content)
+                content = re.sub(r'ேராட்டுக்கு|ேராடு', 'Road', content)
+                if content:
+                    boundaries[direction] = content
+    
+    # Pattern 3: English labels (sometimes mixed in Tamil Nadu ECs)
+    english_patterns = [
+        (r'(?:North|வடக்கு)\s*(?:by|:|-)\s*([^,\n]+?)(?:,|South|East|West|தெற்கு|கிழக்கு|$)', 'north'),
+        (r'(?:South|தெற்கு)\s*(?:by|:|-)\s*([^,\n]+?)(?:,|North|East|West|வடக்கு|கிழக்கு|$)', 'south'),
+        (r'(?:East|கிழக்கு)\s*(?:by|:|-)\s*([^,\n]+?)(?:,|North|South|West|வடக்கு|தெற்கு|$)', 'east'),
+        (r'(?:West|மேற்கு|ேமற்கு)\s*(?:by|:|-)\s*([^,\n]+?)(?:,|North|South|East|வடக்கு|தெற்கு|$)', 'west'),
+    ]
+    
+    for pattern, direction in english_patterns:
+        if direction not in boundaries:
+            match = re.search(pattern, description, re.IGNORECASE)
+            if match:
+                content = match.group(1).strip(' ,')
+                if content and len(content) > 2:
+                    boundaries[direction] = content
+    
+    return boundaries
+
+
+def _extract_tamil_nadu_survey(description: str) -> Optional[str]:
+    """
+    Extract survey number from Tamil Nadu EC description.
+    
+    Formats:
+    - "Survey No./புல எண் : 225/2, 228/1B2B"
+    - "க.ச 225/2 க.ச 228/1B2B" (க.ச = survey abbreviation in Tamil)
+    """
+    # Pattern 1: Labeled format with both English and Tamil
+    survey_patterns = [
+        r'Survey\s*No\.?(?:/புல\s*எண்)?\s*:\s*([0-9/,\s\w]+?)(?:\n|Plot|Village|$)',
+        r'புல\s*எண்\s*:\s*([0-9/,\s\w]+?)(?:\n|மைன|கிராமம்|$)',
+        # Tamil abbreviated format: க.ச 225/2
+        r'க\.ச\s*([0-9/]+(?:\s*க\.ச\s*[0-9/\w]+)*)',
+    ]
+    
+    for pattern in survey_patterns:
+        match = re.search(pattern, description, re.IGNORECASE)
+        if match:
+            survey = match.group(1).strip()
+            # Clean up Tamil survey prefix repetitions
+            survey = re.sub(r'க\.ச\s*', '', survey).strip()
+            # Normalize separators
+            survey = re.sub(r'\s+', ', ', survey)
+            if survey and survey != '0':
+                return survey
+    
+    return None
+
+
+def _extract_tamil_nadu_plot(description: str) -> Optional[str]:
+    """
+    Extract plot/site number from Tamil Nadu EC description.
+    
+    Formats:
+    - "Plot No./மைன எண் : 74"
+    - "மைன எண் 74"
+    """
+    plot_patterns = [
+        r'Plot\s*No\.?(?:/மைன\s*எண்)?\s*:\s*(\d+)',
+        r'மைன\s*எண்\s*:?\s*(\d+)',
+        r'Site\s*(?:No\.?)?\s*(\d+)',
+    ]
+    
+    for pattern in plot_patterns:
+        match = re.search(pattern, description, re.IGNORECASE)
+        if match:
+            return match.group(1)
+    
+    return None
+
+
+def _extract_tamil_nadu_doc_number(identifiers: str) -> Optional[str]:
+    """
+    Extract document number from Tamil Nadu EC identifiers field.
+    
+    Formats:
+    - "Docno/Docyear: 4960/2011,"
+    - "Volno/Pageno: -, "
+    - "PR Number/முந்ைதய ஆவண எண்:\n-"
+    """
+    # Pattern for Tamil Nadu Docno/Docyear format
+    doc_patterns = [
+        r'Docno/Docyear:\s*(\d+)/(\d{4})',
+        r'Doc\s*no[:\s]*/?\s*(\d+)\s*/\s*(\d{4})',
+        r'(\d{3,5})/(\d{4})\s*,',  # Simple number/year with comma
+    ]
+    
+    for pattern in doc_patterns:
+        match = re.search(pattern, identifiers, re.IGNORECASE)
+        if match:
+            num, year = match.groups()
+            if int(num) > 0 and int(year) >= 1900:
+                return f"{int(num)}/{year}"
+    
+    return None
+
+
+def _extract_tamil_nadu_parties(parties_str: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Extract executant and claimant from Tamil Nadu EC parties field.
+    
+    Format:
+    "Executant(s):\n 1. பழனிசாமி\n2. சரசு (எ) சரஸ்வதி,\nClaimant(s):\n 1. பி. சுப்புலட்சுமி"
+    
+    Returns: (executant_name, claimant_name)
+    """
+    executant = None
+    claimant = None
+    
+    # Extract executant(s)
+    exec_match = re.search(r'Executant\s*\(?s?\)?:\s*\n?\s*(?:\d+\.\s*)?(.+?)(?:\n\d+\.|,\s*\n?Claimant|$)', 
+                           parties_str, re.IGNORECASE | re.DOTALL)
+    if exec_match:
+        executant = exec_match.group(1).strip()
+        # Clean up numbering and extra newlines
+        executant = re.sub(r'^\d+\.\s*', '', executant)
+        executant = re.sub(r'\n.*', '', executant)  # Take first name only
+        executant = executant.strip(' ,')
+    
+    # Extract claimant(s) 
+    claim_match = re.search(r'Claimant\s*\(?s?\)?:\s*\n?\s*(?:\d+\.\s*)?(.+?)(?:\n\d+\.|$)', 
+                            parties_str, re.IGNORECASE | re.DOTALL)
+    if claim_match:
+        claimant = claim_match.group(1).strip()
+        claimant = re.sub(r'^\d+\.\s*', '', claimant)
+        claimant = re.sub(r'\n.*', '', claimant)  # Take first name only
+        claimant = claimant.strip(' ,')
+    
+    return executant, claimant
+
+
+def _extract_tamil_nadu_values(deed_value: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """
+    Extract market value, consideration value, and deed type from Tamil Nadu EC deedValue field.
+    
+    Format:
+    "Conveyance Non\nMetro/UA, \nConsideration Value/ைகமாற்றுத் ெதாைக:\nRs. 39,000/-, \nMarket Value/சந்ைத மதிப்பு:\nRs. 39,000/-"
+    
+    Returns: (deed_type, market_value, consideration_value)
+    """
+    deed_type = None
+    market_value = None
+    consideration_value = None
+    
+    # Extract deed type from first line
+    deed_type_patterns = [
+        r'^(Conveyance|Sale\s*Deed|Gift|Mortgage|Partition|Settlement|Release|Deposit\s*of\s*Title)',
+        r'^([\w\s]+?)\s*(?:Non|Metro|,|\n)',
+    ]
+    
+    for pattern in deed_type_patterns:
+        match = re.search(pattern, deed_value, re.IGNORECASE | re.MULTILINE)
+        if match:
+            dtype = match.group(1).strip()
+            if dtype.lower() in ['conveyance', 'sale']:
+                deed_type = 'Sale Deed'
+            elif 'gift' in dtype.lower():
+                deed_type = 'Gift Settlement'
+            elif 'mortgage' in dtype.lower():
+                deed_type = 'Mortgage Deed'
+            elif 'deposit' in dtype.lower():
+                deed_type = 'Deposit of Title Deeds'
+            elif 'receipt' in dtype.lower() or 'deed of receipt' in dtype.lower():
+                deed_type = 'Deed of Receipt'
+            else:
+                deed_type = dtype
+            break
+    
+    # Extract consideration value (Tamil: ைகமாற்றுத் ெதாைக)
+    cons_patterns = [
+        r'Consideration\s*Value(?:/[^:]+)?:\s*\n?\s*(?:Rs\.?|रू\.?|INR)?\s*([\d,]+)',
+        r'ைகமாற்றுத்\s*ெதாைக:\s*\n?\s*(?:Rs\.?|रू\.?)?\s*([\d,]+)',
+    ]
+    
+    for pattern in cons_patterns:
+        match = re.search(pattern, deed_value, re.IGNORECASE)
+        if match:
+            consideration_value = match.group(1).replace(',', '')
+            break
+    
+    # Extract market value (Tamil: சந்ைத மதிப்பு)
+    market_patterns = [
+        r'Market\s*Value(?:/[^:]+)?:\s*\n?\s*(?:Rs\.?|रू\.?|INR)?\s*([\d,]+)',
+        r'சந்ைத\s*மதிப்பு:\s*\n?\s*(?:Rs\.?|रू\.?)?\s*([\d,]+)',
+    ]
+    
+    for pattern in market_patterns:
+        match = re.search(pattern, deed_value, re.IGNORECASE)
+        if match:
+            market_value = match.group(1).replace(',', '')
+            break
+    
+    return deed_type, market_value, consideration_value
+
+
+def _detect_state_from_ec(ec_details: List[Dict]) -> Optional[str]:
+    """
+    Detect the state from EC details format.
+    Different states have different EC formats.
+    """
+    if not ec_details:
+        return None
+    
+    # Combine all text for detection
+    all_text = ""
+    for entry in ec_details:
+        all_text += str(entry.get('description', ''))
+        all_text += str(entry.get('identifiers', ''))
+        all_text += str(entry.get('deedValue', ''))
+        all_text += str(entry.get('parties', ''))
+    
+    # Tamil Nadu indicators
+    tamil_indicators = [
+        'புல எண்',  # Survey number in Tamil
+        'மைன எண்',  # Plot number in Tamil
+        'கிராமம்',  # Village in Tamil
+        'Docno/Docyear',  # Tamil Nadu EC format
+        'ைகமாற்றுத் ெதாைக',  # Consideration value in Tamil
+        'சந்ைத மதிப்பு',  # Market value in Tamil
+        'Executant(s):',  # Tamil Nadu party format
+        'TAMILNADU',
+        'Tamil Nadu',
+    ]
+    
+    # Andhra Pradesh/Telangana indicators
+    telugu_indicators = [
+        '[N]:', '[S]:', '[E]:', '[W]:',  # AP/TS boundary format
+        '(DE)', '(DR)',  # Party format
+        'Mkt. Value:', 'Cons. Value:',  # Value format
+        'ANDHRA PRADESH',
+        'TELANGANA',
+    ]
+    
+    # Karnataka indicators
+    kannada_indicators = [
+        'ಸರ್ವೆ ನಂ',  # Survey number in Kannada
+        'KARNATAKA',
+        'Karnataka',
+    ]
+    
+    tamil_score = sum(1 for ind in tamil_indicators if ind in all_text)
+    telugu_score = sum(1 for ind in telugu_indicators if ind in all_text)
+    kannada_score = sum(1 for ind in kannada_indicators if ind in all_text)
+    
+    if tamil_score >= 2:
+        return 'TAMIL NADU'
+    elif telugu_score >= 2:
+        return 'TELANGANA'  # Could be AP too
+    elif kannada_score >= 1:
+        return 'KARNATAKA'
+    
+    return None
+
+
+# =============================================================================
 # EXTRACTION FROM ACTUAL NIRNAI FORMAT
 # =============================================================================
 
@@ -578,8 +913,8 @@ def extract_from_attachments(attachments: List[str]) -> Dict:
 def extract_from_encumbrance_details(ec_details: List[Dict]) -> Dict:
     """
     Extract key fields from encumbranceDetails array.
-    Handles the actual NirnAI EC format.
-    IMPROVED: Better document number extraction and market value parsing.
+    Handles the actual NirnAI EC format for multiple states.
+    IMPROVED: Better support for Tamil Nadu, Telangana, Karnataka formats.
     """
     extracted = {
         "transactions": [],
@@ -592,10 +927,17 @@ def extract_from_encumbrance_details(ec_details: List[Dict]) -> Dict:
         "extent": None,
         "survey_no": None,
         "house_no": None,
+        "plot_no": None,
+        "detected_state": None,
     }
     
     if not ec_details or not isinstance(ec_details, list):
         return extracted
+    
+    # Detect state format from EC content
+    detected_state = _detect_state_from_ec(ec_details)
+    extracted["detected_state"] = detected_state
+    is_tamil_nadu = detected_state == 'TAMIL NADU'
     
     for entry in ec_details:
         if not isinstance(entry, dict):
@@ -607,60 +949,95 @@ def extract_from_encumbrance_details(ec_details: List[Dict]) -> Dict:
             if not extracted["property_description"]:
                 extracted["property_description"] = desc
             
-            # Extract boundaries from EC description [N]: [S]: [E]: [W]: format
-            boundary_map = {'N': 'north', 'S': 'south', 'E': 'east', 'W': 'west'}
-            for short, full in boundary_map.items():
-                pattern = rf'\[{short}\][:\s]*([^\[\]]+?)(?:\[|$)'
-                match = re.search(pattern, desc)
-                if match and not extracted["boundaries"].get(full):
-                    extracted["boundaries"][full] = match.group(1).strip()
+            # Extract boundaries based on state format
+            if is_tamil_nadu:
+                # Use Tamil Nadu specific boundary extraction
+                tn_boundaries = _extract_tamil_nadu_boundaries(desc)
+                for direction, value in tn_boundaries.items():
+                    if value and not extracted["boundaries"].get(direction):
+                        extracted["boundaries"][direction] = value
+                
+                # Extract survey number from Tamil Nadu format
+                tn_survey = _extract_tamil_nadu_survey(desc)
+                if tn_survey and not extracted["survey_no"]:
+                    extracted["survey_no"] = tn_survey
+                
+                # Extract plot number from Tamil Nadu format
+                tn_plot = _extract_tamil_nadu_plot(desc)
+                if tn_plot:
+                    extracted["plot_no"] = tn_plot
+                    # In Tamil Nadu, plot number is often the house/site number
+                    if not extracted["house_no"]:
+                        extracted["house_no"] = tn_plot
+            else:
+                # Standard format: [N]: [S]: [E]: [W]: boundary format (AP/Telangana)
+                boundary_map = {'N': 'north', 'S': 'south', 'E': 'east', 'W': 'west'}
+                for short, full in boundary_map.items():
+                    pattern = rf'\[{short}\][:\s]*([^\[\]]+?)(?:\[|$)'
+                    match = re.search(pattern, desc)
+                    if match and not extracted["boundaries"].get(full):
+                        extracted["boundaries"][full] = match.group(1).strip()
+                
+                # Extract survey from description (standard format)
+                survey_match = re.search(r'SURVEY[:\s]*(\d+)', desc, re.IGNORECASE)
+                if survey_match and not extracted["survey_no"]:
+                    extracted["survey_no"] = survey_match.group(1)
             
-            # Extract extent from description
-            extent_match = re.search(r'EXTENT[:\s]*([\d\.]+)\s*(?:SQ\.?\s*(?:YDS?|FT|M))', desc, re.IGNORECASE)
-            if extent_match and not extracted["extent"]:
-                extracted["extent"] = extent_match.group(0)
+            # Extract extent from description (works for all states)
+            extent_patterns = [
+                r'EXTENT[:\s]*([\d\.]+)\s*(?:SQ\.?\s*(?:YDS?|FT|M))',
+                r'Area[:\s]*([\d\.]+)\s*(?:Sq\.?\s*(?:Ft|M|Yds?))',
+                r'([\d\.]+)\s*(?:Sq\.?\s*(?:Yds?|Ft|M))',
+            ]
+            for pattern in extent_patterns:
+                extent_match = re.search(pattern, desc, re.IGNORECASE)
+                if extent_match and not extracted["extent"]:
+                    extracted["extent"] = extent_match.group(0)
+                    break
             
-            # Extract survey from description
-            survey_match = re.search(r'SURVEY[:\s]*(\d+)', desc, re.IGNORECASE)
-            if survey_match and not extracted["survey_no"]:
-                extracted["survey_no"] = survey_match.group(1)
-            
-            # Extract house number from description
-            house_match = re.search(r'HOUSE[:\s]*([\d\-]+)', desc, re.IGNORECASE)
-            if house_match and not extracted["house_no"]:
-                extracted["house_no"] = house_match.group(1)
+            # Extract house number from description (standard format)
+            if not extracted["house_no"]:
+                house_match = re.search(r'HOUSE[:\s]*([\d\-]+)', desc, re.IGNORECASE)
+                if house_match:
+                    extracted["house_no"] = house_match.group(1)
         
         # Parse identifiers for doc number and SRO
-        # IMPROVED: Handle format like "0/0\n1101/2026 [1]\nof SRO..."
-        # The actual doc number has a 4-digit year
         identifiers = entry.get("identifiers", "")
-        
-        # Look for document number with 4-digit year (actual document number)
-        doc_patterns = [
-            r'(\d+)/(\d{4})\s*\[',  # "1101/2026 [1]" format
-            r'(\d+)/(\d{4})(?:\s|$|\n)',  # "1101/2026" at end or with space
-            r'(\d{2,5})/(\d{4})',  # General pattern with 4-digit year
-        ]
-        
         doc_no = None
-        for pattern in doc_patterns:
-            match = re.search(pattern, identifiers)
-            if match:
-                num, year = match.groups()
-                # Skip if it's "0/0" type placeholder
-                if num != "0" and int(year) >= 1900:
-                    doc_no = f"{int(num)}/{year}"
-                    break
+        
+        if is_tamil_nadu:
+            # Use Tamil Nadu specific doc number extraction
+            doc_no = _extract_tamil_nadu_doc_number(identifiers)
+        
+        # Fallback/standard doc number extraction
+        if not doc_no:
+            doc_patterns = [
+                r'(\d+)/(\d{4})\s*\[',  # "1101/2026 [1]" format
+                r'(\d+)/(\d{4})(?:\s|$|\n|,)',  # "1101/2026" at end or with separator
+                r'(\d{2,5})/(\d{4})',  # General pattern with 4-digit year
+            ]
+            
+            for pattern in doc_patterns:
+                match = re.search(pattern, identifiers)
+                if match:
+                    num, year = match.groups()
+                    # Skip if it's "0/0" type placeholder
+                    if num != "0" and int(year) >= 1900:
+                        doc_no = f"{int(num)}/{year}"
+                        break
         
         # Extract SRO from identifiers
         sro_patterns = [
-            r'SRO\s*\n?\s*([A-Z][A-Z\s]+?)(?:\(|\n|$)',
-            r'of\s*SRO\s*\n?\s*([A-Z][A-Z\s]+)',
+            r'SRO\s*\n?\s*([A-Z][A-Za-z\s]+?)(?:\(|\n|,|$)',
+            r'of\s*SRO\s*\n?\s*([A-Za-z\s]+)',
+            r'Sub-?Registrar[:\s]*([A-Za-z\s]+?)(?:\(|\n|,|$)',
         ]
         for pattern in sro_patterns:
             match = re.search(pattern, identifiers, re.IGNORECASE)
             if match and not extracted["sro"]:
-                extracted["sro"] = match.group(1).strip()
+                sro_name = match.group(1).strip()
+                if len(sro_name) > 2:  # Avoid noise
+                    extracted["sro"] = sro_name
                 break
         
         # Parse deed value for deed type AND market/consideration values
@@ -668,37 +1045,56 @@ def extract_from_encumbrance_details(ec_details: List[Dict]) -> Dict:
         deed_type = None
         deed_code = None
         
-        # Extract deed code and type
-        code_match = re.search(r'^(\d+)\s*\n?([A-Za-z\s]+)', deed_value)
-        if code_match:
-            deed_code = code_match.group(1)
-            deed_type_raw = code_match.group(2).strip()
-            if "Gift" in deed_type_raw:
-                deed_type = "Gift Settlement"
-            elif "Sale" in deed_type_raw:
-                deed_type = "Sale Deed"
-            elif "Mortgage" in deed_type_raw:
-                deed_type = "Mortgage Deed"
-                extracted["mortgage_flag"] = True
-            elif "Partition" in deed_type_raw:
-                deed_type = "Partition Deed"
-            else:
-                deed_type = deed_type_raw
+        if is_tamil_nadu:
+            # Use Tamil Nadu specific value extraction
+            tn_deed_type, tn_market, tn_consideration = _extract_tamil_nadu_values(deed_value)
+            if tn_deed_type:
+                deed_type = tn_deed_type
+            if tn_market:
+                extracted["market_value"] = tn_market
+            if tn_consideration:
+                extracted["consideration_value"] = tn_consideration
         
-        # Extract market value and consideration value
-        mkt_match = re.search(r'Mkt\.?\s*Value[:\s]*Rs\.?\s*([\d,]+)', deed_value, re.IGNORECASE)
-        if mkt_match:
-            extracted["market_value"] = mkt_match.group(1).replace(',', '')
+        # Fallback/standard deed type and value extraction
+        if not deed_type:
+            # Extract deed code and type (standard format with numeric code)
+            code_match = re.search(r'^(\d+)\s*\n?([A-Za-z\s]+)', deed_value)
+            if code_match:
+                deed_code = code_match.group(1)
+                deed_type_raw = code_match.group(2).strip()
+                if "Gift" in deed_type_raw:
+                    deed_type = "Gift Settlement"
+                elif "Sale" in deed_type_raw:
+                    deed_type = "Sale Deed"
+                elif "Mortgage" in deed_type_raw:
+                    deed_type = "Mortgage Deed"
+                    extracted["mortgage_flag"] = True
+                elif "Partition" in deed_type_raw:
+                    deed_type = "Partition Deed"
+                elif "Deposit" in deed_type_raw:
+                    deed_type = "Deposit of Title Deeds"
+                elif "Receipt" in deed_type_raw:
+                    deed_type = "Deed of Receipt"
+                else:
+                    deed_type = deed_type_raw
         
-        cons_match = re.search(r'Cons\.?\s*Value[:\s]*Rs\.?\s*([\d,]+)', deed_value, re.IGNORECASE)
-        if cons_match:
-            extracted["consideration_value"] = cons_match.group(1).replace(',', '')
+        # Standard value extraction if not already extracted
+        if not extracted["market_value"]:
+            mkt_match = re.search(r'Mkt\.?\s*Value[:\s]*Rs\.?\s*([\d,]+)', deed_value, re.IGNORECASE)
+            if mkt_match:
+                extracted["market_value"] = mkt_match.group(1).replace(',', '')
         
-        # Parse dates - extract all three types (R)egistration, (E)xecution, (P)resentation
+        if not extracted["consideration_value"]:
+            cons_match = re.search(r'Cons\.?\s*Value[:\s]*Rs\.?\s*([\d,]+)', deed_value, re.IGNORECASE)
+            if cons_match:
+                extracted["consideration_value"] = cons_match.group(1).replace(',', '')
+        
+        # Parse dates - handle multiple formats
         dates_str = entry.get("dates", "")
         reg_date = None
         exec_date = None
         
+        # Standard format: (R) date (E) date
         reg_match = re.search(r'\(R\)\s*([\d\-]+)', dates_str)
         if reg_match:
             reg_date = reg_match.group(1)
@@ -707,19 +1103,36 @@ def extract_from_encumbrance_details(ec_details: List[Dict]) -> Dict:
         if exec_match:
             exec_date = exec_match.group(1)
         
-        # Parse parties
+        # Tamil Nadu format: Date of Regd:\n01-09-2011
+        if not reg_date:
+            tn_reg_match = re.search(r'Date\s*(?:of\s*)?Reg(?:d|istration)?[:\s]*\n?\s*(\d{2}[-/]\d{2}[-/]\d{4})', dates_str, re.IGNORECASE)
+            if tn_reg_match:
+                reg_date = tn_reg_match.group(1).replace('/', '-')
+        
+        if not exec_date:
+            tn_exec_match = re.search(r'Date\s*(?:of\s*)?Exec(?:ution)?[:\s]*\n?\s*(\d{2}[-/]\d{2}[-/]\d{4})', dates_str, re.IGNORECASE)
+            if tn_exec_match:
+                exec_date = tn_exec_match.group(1).replace('/', '-')
+        
+        # Parse parties based on state format
         parties = entry.get("parties", "")
         executant = None
         claimant = None
         
-        # Extract executant (DE) and claimant (DR) from parties
-        de_match = re.search(r'\(DE\)\s*([A-Za-z\s]+?)(?:\(|$|\n|\d)', parties)
-        if de_match:
-            executant = de_match.group(1).strip()
+        if is_tamil_nadu:
+            # Use Tamil Nadu specific party extraction
+            executant, claimant = _extract_tamil_nadu_parties(parties)
         
-        dr_match = re.search(r'\(DR\)\s*([A-Za-z\s]+?)(?:\(|$|\n|\d)', parties)
-        if dr_match:
-            claimant = dr_match.group(1).strip()
+        # Fallback/standard party extraction (DE/DR format)
+        if not executant:
+            de_match = re.search(r'\(DE\)\s*([A-Za-z\s]+?)(?:\(|$|\n|\d)', parties)
+            if de_match:
+                executant = de_match.group(1).strip()
+        
+        if not claimant:
+            dr_match = re.search(r'\(DR\)\s*([A-Za-z\s]+?)(?:\(|$|\n|\d)', parties)
+            if dr_match:
+                claimant = dr_match.group(1).strip()
         
         txn = {
             "doc_no": doc_no,
@@ -732,13 +1145,16 @@ def extract_from_encumbrance_details(ec_details: List[Dict]) -> Dict:
             "claimant": claimant,
             "market_value": extracted["market_value"],
             "consideration_value": extracted["consideration_value"],
-            "description": desc[:300] if desc else None,
+            "description": desc[:500] if desc else None,  # Increased limit for Tamil Nadu
         }
         
         extracted["transactions"].append(txn)
         
         # Check for mortgage in deed type
         if deed_type and "mortgage" in deed_type.lower():
+            extracted["mortgage_flag"] = True
+        # Also check for Deposit of Title Deeds (often used as mortgage equivalent)
+        if deed_type and "deposit" in deed_type.lower():
             extracted["mortgage_flag"] = True
     
     return extracted
@@ -837,7 +1253,7 @@ def build_fingerprint(merged_case: Dict) -> str:
     Build a fingerprint string for the current case.
     Used for RAG retrieval to find similar precedents.
     Updated for actual NirnAI format.
-    IMPROVED: Uses better EC extraction and includes more matching criteria.
+    IMPROVED: Uses better EC extraction with state-specific handling.
     """
     parts = []
     
@@ -854,8 +1270,8 @@ def build_fingerprint(merged_case: Dict) -> str:
     ec_transactions = ec_extracted.get('transactions', [])
     ec_txn = ec_transactions[0] if ec_transactions else {}
     
-    # Add state/location (prefer report as it's structured)
-    state = report_extracted['property_details'].get('state')
+    # Add state/location - prefer report but use detected state from EC as fallback
+    state = report_extracted['property_details'].get('state') or ec_extracted.get('detected_state')
     if state:
         parts.append(f"State: {state}")
     
@@ -868,13 +1284,22 @@ def build_fingerprint(merged_case: Dict) -> str:
         parts.append(f"SRO: {sro}")
     
     # Add property identifiers
-    survey_no = report_extracted['property_details'].get('survey_no') or att_extracted.get('survey_no') or ec_extracted.get('survey_no')
+    # Survey number: prioritize EC extraction (more reliable for Tamil Nadu)
+    # IMPORTANT: Don't confuse survey number with document number
+    survey_no = ec_extracted.get('survey_no') or report_extracted['property_details'].get('survey_no') or att_extracted.get('survey_no')
     if survey_no:
-        parts.append(f"Survey: {survey_no}")
+        # Validate it's not a doc number (doc numbers have 4-digit year)
+        if not re.match(r'^\d+/\d{4}$', str(survey_no)):
+            parts.append(f"Survey: {survey_no}")
     
     village = report_extracted['property_details'].get('village') or att_extracted.get('village')
     if village:
         parts.append(f"Village: {village}")
+    
+    # Add plot number for Tamil Nadu cases
+    plot_no = ec_extracted.get('plot_no') or report_extracted['property_details'].get('plot_no')
+    if plot_no:
+        parts.append(f"Plot: {plot_no}")
     
     extent = report_extracted['property_details'].get('extent') or att_extracted.get('extent') or ec_extracted.get('extent')
     if extent:
@@ -928,8 +1353,8 @@ def build_current_case_extract(merged_case: Dict) -> Dict:
     Build a token-efficient extract of the current case for LLM prompts.
     This is what goes into the LLM, NOT the full JSON.
     Updated for actual NirnAI format.
-    IMPROVED: Includes market value comparison, execution vs registration dates,
-    and better boundary extraction.
+    IMPROVED: Better support for Tamil Nadu format with state detection,
+    improved boundary extraction, and proper survey vs doc number distinction.
     """
     attachments = merged_case.get('attachments', [])
     ec_details = merged_case.get('encumbranceDetails', [])
@@ -941,9 +1366,27 @@ def build_current_case_extract(merged_case: Dict) -> Dict:
     
     # Get EC transaction details for document comparison
     ec_transactions = ec_extracted.get('transactions', [])
-    ec_doc_no = ec_transactions[0].get('doc_no') if ec_transactions else None
-    ec_exec_date = ec_transactions[0].get('execution_date') if ec_transactions else None
-    ec_reg_date = ec_transactions[0].get('registration_date') if ec_transactions else None
+    ec_txn = ec_transactions[0] if ec_transactions else {}
+    ec_doc_no = ec_txn.get('doc_no')
+    ec_exec_date = ec_txn.get('execution_date')
+    ec_reg_date = ec_txn.get('registration_date')
+    
+    # Get detected state for format-specific notes
+    detected_state = ec_extracted.get('detected_state') or report_extracted['property_details'].get('state')
+    
+    # Get survey numbers - ensure we don't confuse with doc numbers
+    ec_survey = ec_extracted.get('survey_no')
+    report_survey = report_extracted['schedule'].get('survey_no')
+    deed_survey = att_extracted.get('survey_no')
+    
+    # Validate survey numbers aren't actually doc numbers
+    def is_valid_survey(val):
+        if not val:
+            return False
+        # Doc numbers typically have format NNNN/YYYY (4-digit year)
+        if re.match(r'^\d+/\d{4}$', str(val)):
+            return False
+        return True
     
     extract = {
         "case_info": {
@@ -952,15 +1395,17 @@ def build_current_case_extract(merged_case: Dict) -> Dict:
             "lan": report.get('lan'),
             "policy": report.get('policy'),
             "loan_amount": report_extracted['property_details'].get('loan_amount'),
+            "detected_state": detected_state,
         },
         "owner_applicant": {
             "applicant": report_extracted['property_details'].get('applicant'),
             "owner_in_report": report_extracted['property_details'].get('owner'),
             "executant_from_deed": att_extracted.get('executant'),
             "claimant_from_deed": att_extracted.get('claimant'),
-            "executant_from_ec": ec_transactions[0].get('executant') if ec_transactions else None,
-            "claimant_from_ec": ec_transactions[0].get('claimant') if ec_transactions else None,
+            "executant_from_ec": ec_txn.get('executant'),
+            "claimant_from_ec": ec_txn.get('claimant'),
             "relationship": report.get('mortgagorRelationship'),
+            "note": "For Tamil Nadu, EC executant/claimant may be in Tamil script",
         },
         "title_deed": {
             "doc_no_report": report_extracted['property_details'].get('doc_no'),
@@ -968,10 +1413,11 @@ def build_current_case_extract(merged_case: Dict) -> Dict:
             "doc_no_from_ec": ec_doc_no,
             "deed_type_report": report_extracted['property_details'].get('deed_type'),
             "deed_type_from_deed": att_extracted.get('deed_type'),
-            "deed_type_from_ec": ec_transactions[0].get('deed_type') if ec_transactions else None,
+            "deed_type_from_ec": ec_txn.get('deed_type'),
             "sro_report": report_extracted['property_details'].get('sro'),
             "sro_from_ec": ec_extracted.get('sro'),
             "document_age": report_extracted['property_details'].get('document_age'),
+            "note": "Deed type comparison should account for variations: 'Conveyance' = 'Sale Deed', 'Gift Settlement' = 'Gift Deed'",
         },
         "dates": {
             "execution_date_from_deed": att_extracted.get('execution_date'),
@@ -987,33 +1433,41 @@ def build_current_case_extract(merged_case: Dict) -> Dict:
             "note": "Market value is govt assessed value; Consideration value is declared transaction value",
         },
         "schedule": {
-            "survey_no_report": report_extracted['schedule'].get('survey_no'),
-            "survey_no_from_deed": att_extracted.get('survey_no'),
-            "survey_no_from_ec": ec_extracted.get('survey_no'),
+            # Survey numbers - validated to ensure not doc numbers
+            "survey_no_report": report_survey if is_valid_survey(report_survey) else None,
+            "survey_no_from_deed": deed_survey if is_valid_survey(deed_survey) else None,
+            "survey_no_from_ec": ec_survey if is_valid_survey(ec_survey) else None,
+            # House/plot numbers
             "house_no_report": report_extracted['property_details'].get('house_no') or report_extracted['property_details'].get('flat_no'),
             "house_no_from_deed": att_extracted.get('house_no'),
             "house_no_from_ec": ec_extracted.get('house_no'),
+            "plot_no_report": report_extracted['property_details'].get('plot_no'),
+            "plot_no_from_ec": ec_extracted.get('plot_no'),
             "flat_no": report_extracted['property_details'].get('flat_no'),
-            "plot_no": report_extracted['property_details'].get('plot_no'),
             "assessment_no": report_extracted['property_details'].get('assessment_no'),
+            # Location
             "village": report_extracted['schedule'].get('village'),
             "taluk": report_extracted['property_details'].get('taluk'),
             "district": report_extracted['schedule'].get('district'),
             "state": report_extracted['schedule'].get('state'),
+            # Extent
             "extent_report": report_extracted['schedule'].get('extent'),
             "extent_from_deed": att_extracted.get('extent'),
             "extent_from_ec": ec_extracted.get('extent'),
+            "note": "For Tamil Nadu, plot number is often the site/house identifier",
         },
         "boundaries": {
             "from_report": report_extracted.get('boundaries', {}),
             "from_deed": att_extracted.get('boundaries', {}),
             "from_ec": ec_extracted.get('boundaries', {}),
+            "note": "Tamil Nadu EC uses Tamil direction abbreviations: (வ)=North, (ெத)=South, (கி)=East, (ேம)=West. Compare content, not format.",
         },
         "ec_summary": {
             "transactions_count": len(ec_transactions),
             "transactions": ec_transactions[:5],  # Limit
             "mortgage_flag": ec_extracted.get('mortgage_flag'),
-            "property_description": _truncate_text(ec_extracted.get('property_description', ''), 300),
+            "property_description": _truncate_text(ec_extracted.get('property_description', ''), 500),  # Increased for Tamil Nadu
+            "detected_format": detected_state,
         },
         "report_sections": [
             _truncate_text(s, 500) for s in report_extracted.get('sections_text', [])[:5]
@@ -1134,7 +1588,7 @@ def get_evidence_snippet(merged_case: Dict, source: str, search_terms: List[str]
     """
     if source == 'report':
         data = merged_case.get('reportJson', {})
-        data_str = json.dumps(data, default=str)
+        data_str = json.dumps(data, default=str, ensure_ascii=False)
     elif source == 'attachments':
         # Use raw attachments
         data = merged_case.get('attachments', [])
@@ -1146,10 +1600,10 @@ def get_evidence_snippet(merged_case: Dict, source: str, search_terms: List[str]
         data_str = _filter_stamp_paper_noise(raw_text)
     elif source == 'ec':
         data = merged_case.get('encumbranceDetails', [])
-        data_str = json.dumps(data, default=str)
+        data_str = json.dumps(data, default=str, ensure_ascii=False)
     else:
         data = merged_case
-        data_str = json.dumps(data, default=str)
+        data_str = json.dumps(data, default=str, ensure_ascii=False)
     
     # Stamp paper noise patterns to avoid in snippets
     noise_patterns = [

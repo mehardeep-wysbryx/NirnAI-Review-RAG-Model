@@ -54,6 +54,22 @@ SOP_CHECKLIST = """
 - Must restate correct owner, extent, identifiers, location
 - Must mention any encumbrances, conditional interests, EC limitations as "subject to"
 - Additional Remarks must include: boundary mismatches, conditional settlements, presumptions, FI-supplied EC note
+
+### H. STATE-SPECIFIC CONSIDERATIONS
+- **TAMIL NADU**: 
+  - EC uses Tamil script for party names and boundaries
+  - Direction abbreviations: (வ)=North, (ெத)=South, (கி)=East, (ேம)=West
+  - Document format: "Docno/Docyear: NNNN/YYYY"
+  - Survey numbers may include multiple numbers: "225/2, 228/1B2B"
+  - Plot/Site numbers are primary property identifiers in urban areas
+  - Deed types: "Conveyance" = "Sale Deed", "Gift Settlement" = "Gift Deed"
+  - Party extraction uses "Executant(s):" and "Claimant(s):" format
+- **TELANGANA/ANDHRA PRADESH**:
+  - EC uses [N]: [S]: [E]: [W]: format for boundaries
+  - Party format: (DE) for executant, (DR) for claimant
+  - Value format: "Mkt. Value: Rs. X, Cons. Value: Rs. Y"
+- **KARNATAKA**:
+  - May include Kannada script in some fields
 """
 
 # =============================================================================
@@ -72,6 +88,22 @@ For EVERY issue, you MUST provide BOTH:
 
 NO ISSUE IS VALID WITHOUT BOTH EVIDENCE SNIPPETS.
 
+## STATE-SPECIFIC HANDLING
+The case extract includes `detected_state` - use this for format-specific parsing:
+
+**Tamil Nadu cases:**
+- EC parties may be in Tamil script (பழனிசாமி, சரஸ்வதி, etc.) - compare meaning/transliteration, not exact script
+- Boundaries use Tamil abbreviations: (வ)=North, (ெத)=South, (கி)=East, (ேம)=West
+- "Conveyance" and "Sale Deed" are equivalent deed types
+- "Gift Settlement" and "Gift Deed" are equivalent
+- Document numbers use "Docno/Docyear: 4960/2011" format
+- Survey numbers may include multiple numbers like "225/2, 228/1B2B"
+- DO NOT confuse document numbers (NNNN/YYYY format) with survey numbers
+
+**Telangana/AP cases:**
+- Boundaries use [N]: [S]: [E]: [W]: format
+- Parties use (DE) and (DR) format
+
 ## SOP RULES
 {sop_checklist}
 
@@ -88,6 +120,12 @@ The case extract below contains data from three sources:
 - `source_doc_snippet`: Raw text from scanned/translated documents (attachments)
 - `ec_summary`: Encumbrance certificate transactions
 - `report_sections`: The maker's drafted report content
+
+Key fields for comparison:
+- `owner_applicant`: Compare owner_in_report with executant/claimant from EC (may be in Tamil script)
+- `title_deed`: Compare doc_no_report with doc_no_from_ec (format may differ)
+- `schedule`: Compare survey_no, house_no, plot_no across sources
+- `boundaries`: Compare from_report with from_ec (direction labels may differ by state)
 
 {case_extract}
 
@@ -158,6 +196,26 @@ Review the CANDIDATE_REVIEW from Stage 1 and produce the FINAL REVIEW_OBJECT.
 
 5. **Empty sections**: If no valid issues remain, output empty array []
 
+## STATE-SPECIFIC FALSE POSITIVE REMOVAL
+When evaluating evidence for these cases, remove issues that are actually format differences, not real mismatches:
+
+**Tamil Nadu cases:**
+- Owner name in Tamil script (EC) vs English transliteration (report) is NOT a mismatch if they represent the same person
+- "Conveyance" (EC) vs "Sale Deed" (report) is NOT a mismatch - they are equivalent
+- "Gift Settlement" (EC) vs "Gift Deed" (report) is NOT a mismatch - they are equivalent
+- Boundary format differences (Tamil abbreviations vs English) are NOT mismatches if content matches
+- Document number format "4960/2011" vs "4960 of 2011" is NOT a mismatch
+- DO NOT flag survey number issues if the "evidence" is actually a document number (NNNN/YYYY format)
+- DO NOT use stamp paper text or OCR noise as evidence
+
+**Telangana/AP cases:**
+- Boundary format [N]: vs "North:" is NOT a mismatch if content matches
+
+**Common false positives to REMOVE:**
+- Survey number "4960" when it's actually document number 4960/2011 (wrong field)
+- Boundary evidence from stamp paper noise (Rs., judicial, denomination)
+- Owner mismatch when comparing report owner to EC executant (wrong comparison - should compare to claimant)
+
 ## PRECEDENTS (for severity calibration)
 {precedent_snippets}
 
@@ -172,7 +230,7 @@ Return ONLY the final REVIEW_OBJECT JSON:
 ```json
 {{
   "overall_summary": "Concise summary of final assessment",
-  "overall_risk_level": "OK | NEEDS_FIX_BEFORE_RELEASE | BLOCKER",
+  "overall_risk_level": "CLEAR_TO_RELEASE | NEEDS_FIX_BEFORE_RELEASE | REJECT",
   "sections": {{
     "property_details": [ISSUE...],
     "schedule_of_property": [ISSUE...],
@@ -207,6 +265,7 @@ IMPORTANT:
 - Every issue must have BOTH evidence snippets with exact text
 - Remove all issues that don't meet evidence requirements
 - Use precedent exceptions to avoid false positives
+- Validate that evidence snippets are from the correct fields and not OCR noise
 
 Generate FINAL REVIEW_OBJECT JSON now.
 """

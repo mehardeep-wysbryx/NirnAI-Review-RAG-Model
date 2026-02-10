@@ -70,3 +70,9 @@ outputs/*.json
 
 # ChromaDB vector store (can be regenerated)
 chroma_db/
+
+# Bulk precedent files (upload via app instead)
+# Keep the base 250 precedents, exclude bulk state exports
+data/precedents/KA_*.json
+data/precedents/TN_*.json
+data/precedents/TS_*.json

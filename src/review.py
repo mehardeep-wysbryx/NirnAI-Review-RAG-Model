@@ -78,7 +78,8 @@ class ReviewPipeline:
         
         fingerprint = build_fingerprint(merged_case)
         case_extract = build_current_case_extract(merged_case)
-        case_extract_str = json.dumps(case_extract, indent=2, default=str)
+        # Use ensure_ascii=False to preserve Tamil/other Unicode characters
+        case_extract_str = json.dumps(case_extract, indent=2, default=str, ensure_ascii=False)
         
         if verbose:
             print(f"  Fingerprint: {fingerprint[:100]}...")
@@ -121,7 +122,8 @@ class ReviewPipeline:
         critic_prompt = format_critic_prompt(
             case_extract=case_extract_str,
             precedent_snippets=precedent_snippets,
-            candidate_review=json.dumps(candidate_review, indent=2),
+            # Use ensure_ascii=False to preserve Tamil/other Unicode characters
+            candidate_review=json.dumps(candidate_review, indent=2, ensure_ascii=False),
         )
         
         final_review = call_llm_json(critic_prompt)
@@ -350,4 +352,4 @@ if __name__ == "__main__":
     )
     
     print("\nFinal Review Output:")
-    print(json.dumps(review, indent=2))
+    print(json.dumps(review, indent=2, ensure_ascii=False))
