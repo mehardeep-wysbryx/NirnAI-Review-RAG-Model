@@ -123,10 +123,10 @@ def get_precedent_count():
             store = load_precedent_store()
             if hasattr(store, 'get_stats'):
                 stats = store.get_stats()
-                # Pinecone stores ~3-5 chunks per case, estimate unique cases
                 total_vectors = stats.get('total_vectors', 0)
-                # Approximate unique cases (divide by avg chunks per case)
-                return total_vectors // 4 if total_vectors > 0 else 0
+                # Average ~3.47 chunks per case based on actual data
+                # 34,061 vectors from 9,813 files = 3.47 chunks/file
+                return round(total_vectors / 3.47) if total_vectors > 0 else 0
         except Exception:
             pass
     # Fallback to local file count
