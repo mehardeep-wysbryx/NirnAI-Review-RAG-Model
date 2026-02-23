@@ -116,7 +116,20 @@ OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_precedent_count():
-    """Count existing precedent files."""
+    """Count precedents - from Pinecone if available, otherwise local files."""
+    # Check if using Pinecone
+    if os.getenv("PINECONE_API_KEY"):
+        try:
+            store = load_precedent_store()
+            if hasattr(store, 'get_stats'):
+                stats = store.get_stats()
+                # Pinecone stores ~3-5 chunks per case, estimate unique cases
+                total_vectors = stats.get('total_vectors', 0)
+                # Approximate unique cases (divide by avg chunks per case)
+                return total_vectors // 4 if total_vectors > 0 else 0
+        except Exception:
+            pass
+    # Fallback to local file count
     return len(list(PRECEDENTS_DIR.glob("*.json")))
 
 
