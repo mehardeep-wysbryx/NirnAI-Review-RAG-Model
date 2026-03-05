@@ -191,6 +191,22 @@ class ReviewPipeline:
         for section_name, issues in sections.items():
             if isinstance(issues, list):
                 sections[section_name] = deduplicate_issues(issues)
+
+        # Normalize severities for specific patterns
+        # Business rule: market value differences between deed and EC
+        # are always treated as low severity (minor), since values
+        # naturally change over time.
+        for section_name, issues in sections.items():
+            if section_name != "encumbrance_certificate" or not isinstance(issues, list):
+                continue
+            for issue in issues:
+                text_blob = " ".join([
+                    str(issue.get("location", "")),
+                    str(issue.get("rule", "")),
+                    str(issue.get("message_for_maker", "")),
+                ]).lower()
+                if "market value" in text_blob:
+                    issue["severity"] = "minor"
         
         # Renumber issues with consistent IDs
         sections = renumber_issues(sections)
