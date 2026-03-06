@@ -207,6 +207,22 @@ class ReviewPipeline:
                 ]).lower()
                 if "market value" in text_blob:
                     issue["severity"] = "minor"
+
+        # Business rule: owner name mismatch/spelling error is always high severity.
+        # Force to critical so it shows as HIGH (red) in Streamlit.
+        for section_name, issues in sections.items():
+            if section_name != "property_details" or not isinstance(issues, list):
+                continue
+            for issue in issues:
+                text_blob = " ".join([
+                    str(issue.get("location", "")),
+                    str(issue.get("rule", "")),
+                    str(issue.get("message_for_maker", "")),
+                ]).lower()
+                if "owner name" in text_blob and (
+                    "does not match" in text_blob or "not match" in text_blob or "mismatch" in text_blob
+                ):
+                    issue["severity"] = "critical"
         
         # Renumber issues with consistent IDs
         sections = renumber_issues(sections)
